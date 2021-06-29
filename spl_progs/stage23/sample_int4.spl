@@ -1,0 +1,195 @@
+alias userSP R1;
+userSP = SP;
+alias syscall R2;
+syscall = [([PTBR + 2*((userSP-5)/512)]*512) + ((userSP-5)%512)];
+alias process R3;
+process = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+[process + 13] = SP;
+  SP = [process + 11]*512 - 1;
+
+alias ret R14;
+ret = ([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512);
+
+if(syscall == 1)then
+  [process + 9] = 1;
+  alias filename R4;
+  alias permission R5;
+  filename  = [([PTBR + 2*((userSP-4)/512)]*512) + ((userSP-4)%512)];
+  permission = [([PTBR + 2*((userSP-3)/512)]*512) + ((userSP-3)%512)];
+  
+
+  alias i R6;
+  i = 0;
+
+  while(i<60)do
+    if([INODE_TABLE + i*16 + 1] == filename)then
+       [process + 9] = 0;
+       SP = [process + 13];
+       [ret] = 0;
+       ireturn;
+    endif;
+  i = i+1;
+  endwhile;
+
+ i = 0;
+
+  while(i<60)do
+    if([INODE_TABLE + i*16 ] == -1)then
+        break;     
+    endif;
+  i = i+1;
+  endwhile;
+
+ if(i == 60)then
+     [process + 9] = 0;
+     SP = [process + 13];
+     [ret] = -1;
+     ireturn;
+  endif;
+ 
+alias ite R7;
+ite = INODE_TABLE + i*16;
+
+[ite] = DATA;
+[ite + 1] = filename;
+[ite + 2] = 0;
+[ite + 8] = -1;
+[ite + 9] = -1;
+[ite + 10] = -1;
+[ite + 11] = -1;
+[ite + 3] = [process + 3];
+[ite + 4] = permission;
+
+alias rf R8;
+rf = ROOT_FILE + i*8;
+
+[rf] = [ite + 1];
+[rf + 1] = [ite + 2];
+[rf + 2] = [ite];
+[rf + 3] = [USER_TABLE + [INODE_TABLE + 16*i + 3]*2];
+[rf + 4] = [ite + 4];
+
+[process + 9] = 0;
+SP = [process + 13];
+[ret] = 0;
+ireturn;  
+
+
+
+endif;
+
+if(syscall== 4)then
+  [process + 9] = 4;
+  alias i R4;
+  i = 0;
+  alias filename R5;
+  filename  = [([PTBR + 2*((userSP-4)/512)]*512) + ((userSP-4)%512)];
+
+  while(i<60)do
+    if([INODE_TABLE + i*16 + 1] == filename)then
+       break;
+    endif;
+  i = i+1;
+  endwhile;
+   if(i == 60)then
+     [process + 9] = 0;
+     SP = [process + 13];
+     [ret] = 0;
+     ireturn;
+  endif;
+ 
+  if([INODE_TABLE + i*16] != DATA)then
+     [process + 9] = 0;
+     SP = [process + 13];
+     [ret] = -1;
+     ireturn;
+  endif;
+
+  if([INODE_TABLE + i*16 +4] == 0)then
+        if(([process + 3] != 1) && ([process + 3] != [INODE_TABLE + i*16 + 3]))then
+            [process + 9] = 0;
+            SP = [process + 13];
+            [ret] = -1;
+            ireturn;
+         endif;
+   endif;
+
+  // multipush(R0,R1,R2,R3,R4,R5,R6,R7);
+  backup;
+   R1 = 4;
+   R2 = [SYSTEM_STATUS_TABLE + 1];
+   R3 = i;
+   call MOD_0;
+  // multipop(R0,R1,R2,R3,R4,R5,R6,R7); 
+    restore;
+   if([FILE_STATUS_TABLE + i*4 + 1] != -1)then
+       // multipush(R0,R1,R2,R3,R4,R5,R6,R7);
+         backup;
+        R1 = 5;
+        R2 = [SYSTEM_STATUS_TABLE + 1];
+        R3 = i;
+        call MOD_0;
+        restore;
+       // multipop(R0,R1,R2,R3,R4,R5,R6,R7); 
+        [process + 9] = 0;
+        SP = [process + 13];
+        [ret] = -2;
+        ireturn;
+    endif;
+   alias datablockaddr R8;
+   datablockaddr = INODE_TABLE + i*16 + 8;
+   alias j R9;
+   j = 0;
+   alias k R10;
+  
+   while(j<4)do
+      k = 0;
+      while(k<4)do
+        if(([BUFFER_TABLE + k*4] == [datablockaddr + j]) && ([BUFFER_TABLE + k*4 +1] == 1))then
+            [BUFFER_TABLE + k*4 +1] = 0;
+        endif;
+      k = k+1;
+      endwhile;
+      if([datablockaddr + j] != -1)then
+    //  multipush(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10);
+      backup;
+      R1 = 4;
+      R2 = [datablockaddr + j];
+      R3 = [SYSTEM_STATUS_TABLE + 1];
+      call MOD_2;
+      restore;
+      
+     // multipop(R0,R1,R2,R3,R4,R5,R6,R7,R8,R9,R10); 
+      [datablockaddr + j] = -1;
+      endif;
+  j = j+1;
+  endwhile;
+  
+   alias s R11;
+   s = 0;
+   while(s < 16) do
+   [INODE_TABLE + i*16 + s] = -1;
+   s = s + 1;
+   endwhile;
+   [INODE_TABLE + i*16 + 2] = -1;
+
+   s = 0;
+   while(s < 8) do
+   [ROOT_FILE + i*8 + s] = -1;
+   s = s + 1;
+   endwhile;
+   [ROOT_FILE + i*8 + 2] = 0;
+      backup;
+    // multipush(R3);
+     R1 = 5;
+     R2 = [SYSTEM_STATUS_TABLE + 1];
+     R3 = i;
+     call MOD_0;
+   //  multipop(R3);
+     restore;
+    [process + 9] = 0;
+    SP = [process + 13];
+    [ret] = 0;
+    ireturn;
+
+endif;

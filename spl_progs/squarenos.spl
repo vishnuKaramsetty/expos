@@ -1,0 +1,12 @@
+alias counter R0;
+counter = 1;
+R2=0;
+while(counter<=20) do
+R1= counter*counter;
+R2= R1+R2;
+if(counter>10) then
+breakpoint;
+endif;
+print R2;
+counter=counter+1;
+endwhile;

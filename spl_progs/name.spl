@@ -1,0 +1,6 @@
+alias counter R0;
+
+counter = "vishnu vardhan";
+
+print counter;
+

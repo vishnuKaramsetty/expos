@@ -1,0 +1,43 @@
+
+alias current R4;
+current = [SYSTEM_STATUS_TABLE + 1];
+inline "PUSH BP";
+[PROCESS_TABLE + current*16 + 12] = SP%512;
+[PROCESS_TABLE + current*16 + 14] = PTBR;
+[PROCESS_TABLE + current*16 + 15] = PTLR;
+
+alias new R5;
+new = (current + 1)%16;
+
+while(new!=current)do
+
+ if(new!=0 && ([PROCESS_TABLE + new*16 + 4] == READY || [PROCESS_TABLE + new*16 + 4] == CREATED))then
+   break;
+ else
+   R6 =  (new+1)%16;
+   new = R6;
+ endif;
+endwhile;
+
+if(new==current)then
+new = 0;
+endif;
+
+
+
+SP = [PROCESS_TABLE + new*16 + 11]*512 + [PROCESS_TABLE + new*16 + 12];
+PTBR = [PROCESS_TABLE + new*16 + 14];
+PTLR = [PROCESS_TABLE + new*16 + 15];
+[SYSTEM_STATUS_TABLE + 1] = new;
+if([PROCESS_TABLE + new*16 + 4] == CREATED)then
+   SP = [PROCESS_TABLE + new*16 + 13];
+   [PROCESS_TABLE + new*16 + 4] = RUNNING;
+   [PROCESS_TABLE + new*16 + 9] = 0;
+   ireturn;
+
+else 
+
+  [PROCESS_TABLE + new*16 + 4] = RUNNING;
+  inline "POP BP";
+  return;
+endif;

@@ -1,0 +1,48 @@
+decl
+      int prime(int n);
+enddecl
+
+int prime(int n)
+{
+        decl
+           int temp,i;
+        enddecl
+
+
+        begin
+           if(n==2)then
+             i=1;
+           else
+             i=1;
+             temp = 2;
+                while((temp*temp) <=n)do
+                    if((n%temp)==0)then
+                       i=0;
+                       break;
+                    else
+                       temp = temp +1;
+                    endif;
+                endwhile;
+            endif;
+           return i;
+        end
+}
+int main()
+{
+       decl
+         int temp,n;
+       enddecl
+
+begin
+   n = 1;
+   temp = exposcall("Write",-3,n);
+   n = 2;
+         while(n<=100) do
+            if(prime(n) == 1)then
+               temp = exposcall("Write",-2,n);
+               endif;
+               n = n  + 1;
+          endwhile;
+          return 0;
+end
+}

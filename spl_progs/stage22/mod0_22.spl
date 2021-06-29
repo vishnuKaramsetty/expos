@@ -1,0 +1,101 @@
+
+alias functionNum R1;
+alias currentPID R2;
+    if(functionNum == 3)then     
+        while([DISK_STATUS_TABLE] == 1)do
+          [PROCESS_TABLE + currentPID*16 +4] = WAIT_DISK;
+          multipush(R0,R1,R2,R3);
+          call MOD_5;
+          multipop(R0,R1,R2,R3);  
+        endwhile;
+       [DISK_STATUS_TABLE] = 1;
+       [DISK_STATUS_TABLE + 4] = currentPID;
+       return;
+    endif;
+
+    if(functionNum == 6)then
+        alias i R4;
+        i = 0;
+          while(i<32)do
+            if([SEMAPHORE_TABLE + i*4 +1] == 0)then
+               break;
+             endif;
+             i = i+1;
+          endwhile;
+        if(i==32)then
+          R0 = -1;
+          return; 
+         endif;
+        [SEMAPHORE_TABLE + i*4] = -1;
+        [SEMAPHORE_TABLE + i*4 +1] = 1;
+        R0 = i;
+        return;
+     endif;
+ 
+     if(functionNum == 7)then
+         alias semid R3;
+         alias semtableid R4;
+         semtableid = [[PROCESS_TABLE + currentPID*16 + 11]*512 + 496 + semid*2 +1];
+            if(currentPID == [SEMAPHORE_TABLE + semtableid*4])then
+               [SEMAPHORE_TABLE + semtableid*4] = -1;
+                alias i R5;
+                i = 0;
+                  while(i<16)do
+                     if(([PROCESS_TABLE + i*16 + 4] == WAIT_SEMAPHORE) &&([PROCESS_TABLE + i*16 + 5] == semtableid))then                 
+                        [PROCESS_TABLE + i*16 + 4] = READY;
+                      endif;
+                  i = i+1;
+                  endwhile;
+            endif;
+           [SEMAPHORE_TABLE + semtableid*4 +1] = [SEMAPHORE_TABLE + semtableid*4 +1] -1;
+           return;
+      endif;
+     if(functionNum == 8)then
+           // breakpoint;
+            if([TERMINAL_STATUS_TABLE] == 1)then
+                [PROCESS_TABLE + currentPID*16 + 4] = WAIT_TERMINAL;
+                 multipush(R0,R1,R2,R3);
+                   call MOD_5;
+                 multipop(R0,R1,R2,R3);
+            endif;
+                [TERMINAL_STATUS_TABLE] = 1;
+                [TERMINAL_STATUS_TABLE + 1] = currentPID;
+             //   breakpoint;
+                return;
+                 
+
+
+     endif;
+
+     if(functionNum == 9)then
+        // breakpoint;
+         if(currentPID != [TERMINAL_STATUS_TABLE + 1])then
+             R0 = -1;
+             
+             return;
+
+         else
+             [TERMINAL_STATUS_TABLE] = 0;
+             R5 = 0;
+             while(R5<=15)do
+                if([PROCESS_TABLE + (R5)*16 + 4] == WAIT_TERMINAL)then
+                   [PROCESS_TABLE + (R5)*16 + 4] = READY;
+                endif;
+                R5=R5+1;
+             endwhile;
+                  R0 = 0;
+                 // breakpoint;
+                  return;
+
+
+         endif;
+
+
+
+
+
+     endif;
+
+     
+
+

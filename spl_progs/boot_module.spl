@@ -1,0 +1,201 @@
+loadi(65,7);
+loadi(66,8);
+loadi(22,35);
+loadi(23,36);
+loadi(2,15);
+loadi(3,16);
+loadi(63,13);
+loadi(64,14);
+loadi(4,17);
+loadi(5,18);
+loadi(16,29);
+loadi(17,30);
+loadi(69,11);
+loadi(70,12);
+loadi(85,70);
+loadi(50,63);
+loadi(51,64);
+loadi(91,71);
+
+//MOD0
+
+loadi(40,53);
+loadi(41,54);
+
+//MOD4
+
+loadi(48,61);
+loadi(49,62);
+
+//INT6
+
+loadi(14,27);
+loadi(15,28);
+
+//CONSOLE_INT
+
+loadi(8,21);
+loadi(9,22);
+
+//INT9
+loadi(20,33);
+loadi(21,34);
+
+//MOD1
+
+loadi(42,55);
+loadi(43,56);
+
+//MOD2
+
+loadi(44,57);
+loadi(45,58);
+
+//INODE
+loadi(59,3);
+loadi(60,4);
+
+[TERMINAL_STATUS_TABLE] = 0;
+alias i R1;
+i =0;
+
+while(i<83)do
+[MEMORY_FREE_LIST + i] = 1;
+i = i + 1;
+endwhile;
+
+
+while(i<128)do
+[MEMORY_FREE_LIST + i] = 0;
+i = i + 1;
+endwhile;
+
+
+[SYSTEM_STATUS_TABLE + 2] = 45;
+[SYSTEM_STATUS_TABLE + 3] = 0;
+
+[PROCESS_TABLE + 11 + 16] = 80;
+[PROCESS_TABLE + 12 + 16]=0;
+[PROCESS_TABLE + 13 + 16]=4096;
+[PROCESS_TABLE + 14 + 16]=PAGE_TABLE_BASE+20;
+[PROCESS_TABLE + 15 + 16]=10;
+[PROCESS_TABLE +  4 + 16]=CREATED;
+[PROCESS_TABLE + 1  + 16] = 1;
+PTBR=PAGE_TABLE_BASE+20;
+PTLR=10;
+
+
+
+
+[PTBR]=63;
+[PTBR+1]="0100";
+[PTBR+2]=64;
+[PTBR+3]="0100";
+[PTBR+4]=78;
+[PTBR+5]="0110";
+[PTBR+6]=79;
+[PTBR+7]="0110";
+[PTBR+8]=65;
+[PTBR+9]="0100";
+[PTBR+10]=66;
+[PTBR+11]="0100";
+[PTBR+12]=-1;
+[PTBR+13]="0000";
+[PTBR+14]=-1;
+[PTBR+15]="0000";
+[PTBR+16]=76;
+[PTBR+17]="0110";
+[PTBR+18]=77;
+[PTBR+19]="0110";
+[76*512]=[65*512+1];
+
+[PROCESS_TABLE + 11 + 32] = 88;
+[PROCESS_TABLE + 12 + 32]=0;
+[PROCESS_TABLE + 13 + 32]=4096;
+[PROCESS_TABLE + 14 + 32]=PAGE_TABLE_BASE+40;
+[PROCESS_TABLE + 15 + 32]=10;
+[PROCESS_TABLE +  4 + 32]=TERMINATED;
+[PROCESS_TABLE + 1  + 32] = 2;
+[PROCESS_TABLE +  4 + 16*3]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*4]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*5]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*6]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*7]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*8]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*9]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*10]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*11]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*12]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*13]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*14]=TERMINATED;
+[PROCESS_TABLE +  4 + 16*15]=TERMINATED;
+
+PTBR=PAGE_TABLE_BASE+40;
+PTLR=10;
+
+
+
+
+[PTBR]=63;
+[PTBR+1]="0100";
+[PTBR+2]=64;
+[PTBR+3]="0100";
+[PTBR+4]=83;
+[PTBR+5]="0110";
+[PTBR+6]=84;
+[PTBR+7]="0110";
+[PTBR+8]=85;
+[PTBR+9]="0100";
+[PTBR+10]=-1;
+[PTBR+11]="0000";
+[PTBR+12]=-1;
+[PTBR+13]="0000";
+[PTBR+14]=-1;
+[PTBR+15]="0000";
+[PTBR+16]=86;
+[PTBR+17]="0110";
+[PTBR+18]=87;
+[PTBR+19]="0110";
+[86*512]=[85*512+1];
+
+
+[PROCESS_TABLE + 11 + 48] = 94 ;
+[PROCESS_TABLE + 12 + 48]=0;
+[PROCESS_TABLE + 13 + 48]=4096;
+[PROCESS_TABLE + 14 + 48]=PAGE_TABLE_BASE+60;
+[PROCESS_TABLE + 15 + 48]=10;
+[PROCESS_TABLE +  4 + 48] =  TERMINATED;
+[PROCESS_TABLE + 1  + 48] = 3;
+PTBR=PAGE_TABLE_BASE+60;
+PTLR=10;
+
+
+
+
+[PTBR]=63;
+[PTBR+1]="0100";
+[PTBR+2]=64;
+[PTBR+3]="0100";
+[PTBR+4]=89;
+[PTBR+5]="0110";
+[PTBR+6]=90;
+[PTBR+7]="0110";
+[PTBR+8]=91;
+[PTBR+9]="0100";
+[PTBR+10]=-1;
+[PTBR+11]="0000";
+[PTBR+12]=-1;
+[PTBR+13]="0000";
+[PTBR+14]=-1;
+[PTBR+15]="0000";
+[PTBR+16]=92;
+[PTBR+17]="0110";
+[PTBR+18]=93;
+[PTBR+19]="0110";
+[92*512]=[91*512+1];
+
+PTBR=PAGE_TABLE_BASE+20;
+PTLR=10;
+
+
+return;

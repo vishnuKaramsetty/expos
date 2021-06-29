@@ -1,0 +1,137 @@
+breakpoint;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 9] = 8;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 13] = SP;
+alias userSP R1;
+alias pcb R14;
+pcb = PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16;
+userSP = SP;
+SP = [pcb + 11]*512 -1 ;
+multipush(R1,R14,R13);
+R1 = 1;
+call MOD_1;
+multipop(R1,R14,R13);
+
+alias chiPID R2;
+chiPID = R0;
+
+alias pcbch R13;
+pcbch = PROCESS_TABLE + chiPID*16;
+
+if(chiPID == -1)then
+
+[([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = -1;
+[pcb + 9] = 0;
+SP = userSP;
+ireturn;
+
+endif;
+
+if([PTBR + 4] == -1)then
+  multipush(R1,R2,R14,R13);
+  R1 = 1;
+  call MOD_2;
+  [PTBR + 4] = R0;
+  [PTBR + 5] = "0110";
+  multipop(R1,R2,R14,R13);
+
+  multipush(R1,R2,R14,R13);
+  R1 = 1;
+  call MOD_2;
+  [PTBR + 6] = R0;
+  [PTBR + 7] = "0110";
+  multipop(R1,R2,R14,R13);
+
+endif;
+
+multipush(R1,R2,R14,R13);
+R1 = 1;
+call MOD_2;
+R3 = R0;
+multipop(R1,R2,R14,R13);
+[PAGE_TABLE_BASE + chiPID*20 + 16] = R0;
+[PAGE_TABLE_BASE + chiPID*20 + 17] = "0110";
+
+multipush(R1,R2,R14,R13);
+R1 = 1;
+call MOD_2;
+R3 = R0;
+multipop(R1,R2,R14,R13);
+[PAGE_TABLE_BASE + chiPID*20 + 18] = R0;
+[PAGE_TABLE_BASE + chiPID*20 + 19] = "0110";
+
+multipush(R1,R2,R14,R13);
+R1 = 1;
+call MOD_2;
+R3 = R0;
+multipop(R1,R2,R14,R13);
+[pcbch+ 11] = R0;
+
+[pcbch + 3] = [pcb + 3];
+[pcbch + 6] = [pcb + 6];
+[pcbch + 10] = [pcb + 10];
+[pcbch + 7] = [pcb + 7];
+[pcbch + 13] = [pcb + 13];
+
+[pcbch +  9] = 0;
+[pcbch+ 12] = 0;
+[pcbch +  0] = 0;
+[pcbch +  2] = [SYSTEM_STATUS_TABLE + 1];
+[pcbch +  4] = CREATED;
+
+multipush(R4);
+alias i R3;
+alias semtableid R4;
+i = 496;
+while(i<512)do
+  [[pcbch + 11]*512 + i]    =  [[pcb + 11]*512 + i];
+  [[pcbch + 11]*512 + i + 1]    =  [[pcb + 11]*512 + i +1];
+  
+  if([[pcb + 11]*512 + i] == 1)then
+     semtableid = [[pcb + 11]*512 + i +1];
+     [SEMAPHORE_TABLE + 4*semtableid +1] = [SEMAPHORE_TABLE + 4*semtableid +1] + 1;  
+   endif;
+i = i+2;
+endwhile;
+multipop(R4);
+
+
+i = 0;
+while(i<10)do
+ [DISK_MAP_TABLE + chiPID*10 + i] = [DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE + 1]*10 + i];
+ 
+i=i+1;
+endwhile;
+[DISK_MAP_TABLE + chiPID*10 + 0] = -1; 
+[DISK_MAP_TABLE + chiPID*10 + 1] = -1;
+[DISK_MAP_TABLE + chiPID*10 + 8] = -1;
+[DISK_MAP_TABLE + chiPID*10 + 9] = -1;
+
+
+i = 0;
+
+while(i<8)do
+
+[PAGE_TABLE_BASE + chiPID*20 + i*2] = [PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1]*20 + i*2];
+[PAGE_TABLE_BASE + chiPID*20 + i*2 +1] = [PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1]*20 + i*2 +1];
+
+[MEMORY_FREE_LIST + [PAGE_TABLE_BASE + chiPID*20 + i*2]] = [MEMORY_FREE_LIST + [PAGE_TABLE_BASE + chiPID*20 + i*2]] + 1;
+i = i+1;
+endwhile;
+
+i = 0;
+while(i<512)do
+ [[PAGE_TABLE_BASE + chiPID*20 + 16]*512 + i] = [[PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1]*20 + 16]*512 + i];
+[[PAGE_TABLE_BASE + chiPID*20 + 18]*512 + i] = [[PAGE_TABLE_BASE + [SYSTEM_STATUS_TABLE + 1]*20 + 18]*512 + i];
+
+i = i+1;
+endwhile;
+
+
+[[PROCESS_TABLE + chiPID*16 +  11]*512] = BP;
+
+[([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = chiPID;
+[([PAGE_TABLE_BASE + chiPID*20 + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = 0;
+[pcb + 9] = 0;
+SP = [pcb + 13];
+breakpoint;
+ireturn;

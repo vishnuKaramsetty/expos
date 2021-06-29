@@ -1,0 +1,128 @@
+
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13] = SP;
+alias userSP R3;
+userSP = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11]*512 -1;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 9;
+alias file R4;
+file = [([PTBR + 2*((userSP-4)/512)]*512) + ((userSP-4)%512)];
+
+  
+alias p R5;
+alias index R6;
+index = -1;
+p = 0;
+while(p<60)do
+    if(([INODE_TABLE + p*16] == 3) && ([INODE_TABLE + p*16 +1] == file))then
+       index = p;
+       break;
+       endif;
+p = p+1;
+
+endwhile;
+
+if(index == -1)then
+     [([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = -1;
+     [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 0;
+     SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+   ireturn;
+endif;
+
+multipush(R1,R2,R3,R4,R5,R6);
+
+R1 = 3;
+R2 = [SYSTEM_STATUS_TABLE + 1];
+
+call MOD_1;
+
+multipop(R1,R2,R3,R4,R5,R6);
+alias userpgno R5;
+userpgno = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1]*16 + 11];
+[MEMORY_FREE_LIST + userpgno] = [MEMORY_FREE_LIST + userpgno] + 1;
+[SYSTEM_STATUS_TABLE + 2] = [SYSTEM_STATUS_TABLE + 2] - 1;
+
+alias perp_radd R8;
+perp_radd = (userpgno)*512 +496;
+[perp_radd] = -1;
+[perp_radd+2] = -1;
+[perp_radd+4] = -1;
+[perp_radd+6] = -1;
+[perp_radd+8] = -1;
+[perp_radd+10] = -1;
+[perp_radd+12] = -1;
+[perp_radd+14] = -1;
+
+
+SP  =  userpgno*512 -1;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 4] = RUNNING;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 7] = index;
+PTBR = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 14];
+PTLR = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 15];
+[PTBR] = 63;
+[PTBR +1] = "0100";
+[PTBR +2] = 64;
+[PTBR +3] = "0100";
+
+alias i R7;
+i = 2;
+while(i<10)do
+    if((i == 8) || (i == 9))then  
+        multipush(R1,R2,R3,R4,R5,R6,R7);
+        R1 = 1;
+     //   breakpoint;
+        call MOD_2;
+      //  breakpoint;
+        alias retval R0;
+    //    breakpoint;
+        [PTBR + i*2] = retval;
+        [PTBR + i*2 + 1] = "0110";
+      //  breakpoint;
+        multipop(R1,R2,R3,R4,R5,R6,R7);
+        
+    else
+        [PTBR + i*2] = -1;
+        [PTBR + i*2 + 1] = "0000";
+    endif;
+i = i+1;
+endwhile;
+
+multipush(R1,R2,R3,R4,R5,R6,R7);
+ 
+ alias retval R0;
+ alias functionnum R1;
+ alias blocknum R2;
+   functionnum = 5;
+   blocknum = [INODE_TABLE + index*16 + 8];
+   call MOD_2;
+   [PTBR + 8] = retval;
+   [PTBR + 9] = "0100";
+   breakpoint;
+   multipop(R1,R2,R3,R4,R5,R6,R7);
+   
+alias diskmap R8;
+diskmap = DISK_MAP_TABLE + [SYSTEM_STATUS_TABLE + 1]*10;
+[diskmap] = -1;
+[diskmap+1] = -1;
+[diskmap+2] = -1;
+[diskmap+3] = -1;
+[diskmap+4] = [INODE_TABLE + index*16 + 8];
+[diskmap+5] = [INODE_TABLE + index*16 + 9];
+[diskmap+6] = [INODE_TABLE + index*16 + 10];
+[diskmap+7] = [INODE_TABLE + index*16 + 11];
+[diskmap+8] = -1;
+[diskmap+9] = -1;
+
+
+
+   [[PTBR + 16]*512] = [[PTBR + 8]*512 +1];
+
+SP = 8 * 512;
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE + 1] * 16 + 9] = 0;
+breakpoint;
+ireturn;
+
+
+
+
+
+

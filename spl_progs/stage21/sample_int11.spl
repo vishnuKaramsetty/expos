@@ -1,0 +1,72 @@
+[PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13] = SP;
+alias userSP R1;
+userSP = SP;
+SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 11]*512 -1;
+alias syscall R2;
+syscall = [([PTBR + 2*((userSP-5)/512)]*512) + ((userSP-5)%512)];
+
+if(syscall == 13)then
+ print syscall;
+    alias pid R3;
+    [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 13;
+    pid = [([PTBR + 2*((userSP-4)/512)]*512) + ((userSP-4)%512)];
+   print pid;
+    if(([PROCESS_TABLE + pid*16 + 13] == TERMINATED) || (pid == [SYSTEM_STATUS_TABLE +1]) || (pid<0) || (pid>15))then
+    
+        [([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = -1;
+        [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 0;
+        SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+        ireturn;     
+     endif;
+     [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 4] = WAIT_PROCESS;
+     [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 5] = pid;
+     backup;
+      call MOD_5;
+     restore;
+     [([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = 0;
+     [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 0;
+     SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+     ireturn;
+endif;
+
+if(syscall == 14)then
+ print syscall;
+   [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 14;
+   alias i R3;
+   i = 0;
+    while(i<16)do
+      if([PROCESS_TABLE + i*16 + 4] == WAIT_PROCESS)then
+         if([PROCESS_TABLE + i*16 + 5] == [SYSTEM_STATUS_TABLE + 1])then
+           [PROCESS_TABLE + i*16 + 4] = READY;
+         endif;
+      endif;
+   i = i+1;
+   endwhile;
+   [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 0;
+   [([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = 0;
+   SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+   ireturn;
+endif;
+
+if(syscall == 11)then
+ print syscall;
+   [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 11;
+   [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 0;
+   [([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = [SYSTEM_STATUS_TABLE +1];
+   SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+   ireturn;
+endif;
+
+if(syscall == 12)then
+    print syscall;
+   [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 12;
+   [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 9] = 0;
+   [([PTBR + 2*((userSP-1)/512)]*512) + ((userSP-1)%512)] = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 2];
+   SP = [PROCESS_TABLE + [SYSTEM_STATUS_TABLE +1]*16 + 13];
+   ireturn;
+endif;
+
+
+
+
+

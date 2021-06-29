@@ -1,0 +1,20 @@
+int main()
+{
+decl
+int temp,num;
+str name;
+enddecl
+
+begin
+num =1;
+name = "karamsetty_vishnu";
+temp = exposcall("Write",-3,name);
+while(num<=50) do
+temp = exposcall("Write",-2,num);
+num = num+1;
+
+endwhile;
+return 0;
+end
+
+}
